@@ -16,26 +16,13 @@ end
 
 class Page
   def self.find_all
-    return [] if repository.tree.contents.empty?
-    GitWiki.repository.tree.contents.collect { |blob| new(blob) }
+    GitWiki.repository.tree.contents.collect {|blob| new(blob) }
   end
 
   def self.find_or_create(name)
     path = name + GitWiki.extension
     blob = GitWiki.repository.tree/path
     new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
-  end
-
-  def self.css_class_for(name)
-    find_blob(name) ? "exists" : "unknown"
-  end
-
-  def self.repository
-    GitWiki.repository || raise
-  end
-
-  def self.extension
-    GitWiki.extension || raise
   end
 
   def initialize(blob)
@@ -50,8 +37,8 @@ class Page
     name
   end
 
-  def new?
-    @blob.id.nil?
+  def css_class
+    @blob.id ? 'existing' : 'new'
   end
 
   def name
@@ -70,18 +57,14 @@ class Page
 
   private
   def add_to_index_and_commit!
-    Dir.chdir(self.class.repository.working_dir) {
-      self.class.repository.add(@blob.name)
+    Dir.chdir(GitWiki.repository.working_dir) {
+      GitWiki.repository.add(@blob.name)
     }
-    self.class.repository.commit_index(commit_message)
+    GitWiki.repository.commit_index("web commit: #{self}")
   end
 
   def file_name
-    File.join(self.class.repository.working_dir, name + self.class.extension)
-  end
-
-  def commit_message
-    new? ? "Created #{name}" : "Updated #{name}"
+    File.join(GitWiki.repository.working_dir, name + GitWiki.extension)
   end
 
   def wiki_link(str)
@@ -94,21 +77,6 @@ end
 
 set :haml, :format => :html5, :attr_wrapper => '"'
 enable :inline_templates
-
-before do
-  content_type "text/html", :charset => "utf-8"
-end
-
-helpers do
-  def title(title=nil)
-    @title = title.to_s unless title.nil?
-    @title
-  end
-
-  def list_item(page)
-    %Q{<a class="page_name" href="/#{page}">#{page.name}</a>}
-  end
-end
 
 get "/" do
   redirect "/" + GitWiki.homepage
