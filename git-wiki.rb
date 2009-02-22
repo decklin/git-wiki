@@ -14,37 +14,20 @@ module GitWiki
   @homepage = ARGV[2] || 'Home'
 end
 
-class PageNotFound < Sinatra::NotFound
-  attr_reader :name
-
-  def initialize(name)
-    @name = name
-  end
-end
-
 class Page
   def self.find_all
     return [] if repository.tree.contents.empty?
     GitWiki.repository.tree.contents.collect { |blob| new(blob) }
   end
 
-  def self.find(name)
-    page_blob = find_blob(name)
-    raise PageNotFound.new(name) unless page_blob
-    new(page_blob)
-  end
-
   def self.find_or_create(name)
-    find(name)
-  rescue PageNotFound
-    new(create_blob_for(name))
+    path = name + GitWiki.extension
+    blob = GitWiki.repository.tree/path
+    new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
   end
 
   def self.css_class_for(name)
-    find(name)
-    "exists"
-  rescue PageNotFound
-    "unknown"
+    find_blob(name) ? "exists" : "unknown"
   end
 
   def self.repository
@@ -54,19 +37,6 @@ class Page
   def self.extension
     GitWiki.extension || raise
   end
-
-  def self.find_blob(page_name)
-    repository.tree/(page_name + extension)
-  end
-  private_class_method :find_blob
-
-  def self.create_blob_for(page_name)
-    Grit::Blob.create(repository, {
-      :name => page_name + extension,
-      :data => ""
-    })
-  end
-  private_class_method :create_blob_for
 
   def initialize(blob)
     @blob = blob
@@ -125,11 +95,6 @@ end
 set :haml, :format => :html5, :attr_wrapper => '"'
 enable :inline_templates
 
-error PageNotFound do
-  page = request.env["sinatra.error"].name
-  redirect "/#{page}/edit"
-end
-
 before do
   content_type "text/html", :charset => "utf-8"
 end
@@ -160,7 +125,7 @@ get "/:page/edit" do
 end
 
 get "/:page" do
-  @page = Page.find(params[:page])
+  @page = Page.find_or_create(params[:page])
   haml :show
 end
 
