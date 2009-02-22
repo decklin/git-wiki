@@ -1,0 +1,11 @@
+!!!
+%html
+  %head
+    %title= title
+  %body
+    %ul
+      %li
+        %a{ :href => "/#{GitWiki.homepage}" } Home
+      %li
+        %a{ :href => "/pages" } All pages
+    #content= yield
