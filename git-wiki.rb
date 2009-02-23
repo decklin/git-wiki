@@ -7,11 +7,12 @@ require 'rdiscount'
 
 module GitWiki
   class << self
-    attr_accessor :homepage, :extension, :repository
+    attr_accessor :homepage, :extension, :repository, :link_pattern
   end
   @repository = Grit::Repo.new(ARGV[0] || File.expand_path('~/wiki'))
   @extension = ARGV[1] || '.markdown'
   @homepage = ARGV[2] || 'Home'
+  @link_pattern = /\[\[(.*?)\]\]/
 end
 
 class Page
@@ -25,12 +26,21 @@ class Page
     new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
   end
 
+  def self.wikify(content)
+    content.gsub(GitWiki.link_pattern) {|match| link($1) }
+  end
+
+  def self.link(text)
+    page = find_or_create(text.gsub(/[^\w\s]/, '').split.join('-').downcase)
+    "<a class='page #{page.css_class}' href='#{page.url}'>#{text}</a>"
+  end
+
   def initialize(blob)
     @blob = blob
   end
 
   def to_html
-    RDiscount.new(wiki_link(content)).to_html
+    Page.wikify(RDiscount.new(content).to_html)
   end
 
   def to_s
@@ -65,13 +75,6 @@ class Page
 
   def file_name
     File.join(GitWiki.repository.working_dir, name + GitWiki.extension)
-  end
-
-  def wiki_link(str)
-    str.gsub(/([A-Z][a-z]+[A-Z][A-Za-z0-9]+)/) { |page|
-      %Q{<a class="#{self.class.css_class_for(page)}"} +
-      %Q{href="/#{page}">#{page}</a>}
-    }
   end
 end
 
