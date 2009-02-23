@@ -1,0 +1,5 @@
+%dl
+  - @page.log.each do |commit|
+    %dt= commit['committed_date']
+    %dd
+      %a{:href => commit['id']}= commit['message']
