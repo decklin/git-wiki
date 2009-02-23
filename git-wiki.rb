@@ -69,11 +69,12 @@ class Page
     Page.wikify(RDiscount.new(content).to_html)
   end
 
-  def save!(data)
+  def save!(data, msg)
+    msg = "web commit: #{self}" if msg.empty?
     Dir.chdir(GitWiki.repository.working_dir) do
       File.open(@blob.name, 'w') {|f| f.puts(data.gsub("\r\n", "\n")) }
       GitWiki.repository.add(@blob.name)
-      GitWiki.repository.commit_index("web commit: #{self}")
+      GitWiki.repository.commit_index(msg)
     end
   end
 end
@@ -102,8 +103,8 @@ end
 
 post '/pages/:page/edit' do
   @page = Page.find_or_create(params[:page])
-  @page.save!(params[:body])
-  redirect @page.url
+  @page.save!(params[:content], params[:msg])
+  redirect @page.url, 303
 end
 
 configure do

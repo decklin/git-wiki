@@ -1,5 +1,6 @@
 %form{:method => 'POST', :action => @page.edit_url}
   %p
-    %textarea{:name => 'body', :rows => 25, :cols => 80}~ @page.content
+    %textarea{:name => 'content', :rows => 25, :cols => 80}~ @page.content
   %p
-    %input{:type => :submit, :value => "Save Changes"}
+    %input{:type => :text, :name => 'msg', :size => 65}
+    %input{:type => :submit, :value => "Commit"}
