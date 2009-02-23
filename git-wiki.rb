@@ -7,19 +7,23 @@ require 'rdiscount'
 
 module GitWiki
   class << self
-    attr_accessor :root_page, :extension, :link_pattern
+    attr_accessor :wiki_path, :root_page, :extension, :link_pattern
     attr_reader :wiki_name, :repository
+    def wiki_path=(path)
+      @wiki_name = File.basename(path)
+      @repository = Grit::Repo.new(path)
+    end
+    def all_page_blobs
+      @repository.tree.contents.select do |obj|
+        obj.kind_of?(Grit::Blob) && obj.name.end_with?(@extension)
+      end
+    end
   end
-  @wiki_name = File.basename(File.expand_path(ARGV[0] || '~/wiki'))
-  @repository = Grit::Repo.new(File.expand_path(ARGV[0] || '~/wiki'))
-  @extension = ARGV[1] || '.markdown'
-  @root_page = ARGV[2] || 'index'
-  @link_pattern = /\[\[(.*?)\]\]/
 end
 
 class Page
   def self.find_all
-    GitWiki.repository.tree.contents.collect {|blob| new(blob) }
+    GitWiki.all_page_blobs.map {|blob| new(blob) }
   end
 
   def self.find_or_create(name)
@@ -100,4 +104,11 @@ post '/pages/:page/edit' do
   @page = Page.find_or_create(params[:page])
   @page.save!(params[:body])
   redirect @page.url
+end
+
+configure do
+  GitWiki.wiki_path = Dir.pwd
+  GitWiki.root_page = 'index'
+  GitWiki.extension = '.md'
+  GitWiki.link_pattern = /\[\[(.*?)\]\]/
 end
