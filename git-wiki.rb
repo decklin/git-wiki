@@ -59,22 +59,12 @@ class Page
     @blob.data
   end
 
-  def update_content(new_content)
-    return if new_content == content
-    File.open(file_name, "w") { |f| f << new_content }
-    add_to_index_and_commit!
-  end
-
-  private
-  def add_to_index_and_commit!
-    Dir.chdir(GitWiki.repository.working_dir) {
+  def save!(data)
+    Dir.chdir(GitWiki.repository.working_dir) do
+      File.open(@blob.name, 'w') {|f| f.puts(data.gsub("\r\n", "\n")) }
       GitWiki.repository.add(@blob.name)
-    }
-    GitWiki.repository.commit_index("web commit: #{self}")
-  end
-
-  def file_name
-    File.join(GitWiki.repository.working_dir, name + GitWiki.extension)
+      GitWiki.repository.commit_index("web commit: #{self}")
+    end
   end
 end
 
@@ -102,7 +92,7 @@ end
 
 post "/:page" do
   @page = Page.find_or_create(params[:page])
-  @page.update_content(params[:body])
+  @page.save!(params[:body])
   redirect "/#{@page}"
 end
 
