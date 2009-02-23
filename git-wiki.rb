@@ -7,11 +7,11 @@ require 'rdiscount'
 
 module GitWiki
   class << self
-    attr_accessor :homepage, :extension, :repository, :link_pattern
+    attr_accessor :root_page, :extension, :repository, :link_pattern
   end
   @repository = Grit::Repo.new(ARGV[0] || File.expand_path('~/wiki'))
   @extension = ARGV[1] || '.markdown'
-  @homepage = ARGV[2] || 'Home'
+  @root_page = ARGV[2] || 'index'
   @link_pattern = /\[\[(.*?)\]\]/
 end
 
@@ -47,6 +47,14 @@ class Page
     name
   end
 
+  def url
+    to_s == GitWiki.root_page ? '/' : "/pages/#{to_s}"
+  end
+
+  def edit_url
+    "/pages/#{to_s}/edit"
+  end
+
   def css_class
     @blob.id ? 'existing' : 'new'
   end
@@ -70,27 +78,28 @@ end
 
 set :haml, :format => :html5, :attr_wrapper => '"'
 
-get "/" do
-  redirect "/" + GitWiki.homepage
+get '/' do
+  @page = Page.find_or_create(GitWiki.root_page)
+  haml :show
 end
 
-get "/pages" do
+get '/pages/' do
   @pages = Page.find_all
   haml :list
 end
 
-get "/:page/edit" do
-  @page = Page.find_or_create(params[:page])
-  haml :edit
-end
-
-get "/:page" do
+get '/pages/:page/?' do
   @page = Page.find_or_create(params[:page])
   haml :show
 end
 
-post "/:page" do
+get '/pages/:page/edit' do
+  @page = Page.find_or_create(params[:page])
+  haml :edit
+end
+
+post '/pages/:page/edit' do
   @page = Page.find_or_create(params[:page])
   @page.save!(params[:body])
-  redirect "/#{@page}"
+  redirect @page.url
 end
