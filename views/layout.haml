@@ -1,11 +1,18 @@
 !!!
 %html
   %head
-    %title= title
+    %title= @page || GitWiki::wiki_name
+    %link{:rel => 'stylesheet', :type => 'text/css', :href => '/wiki.css'}
   %body
-    %ul
+    %h1#title<
+      %a.home{:href => '/'}>= GitWiki::wiki_name
+      - if @page and @page.url != '/'
+        \:
+        %a{:href => @page.url}= @page
+    %ul#actions
+      - if @page
+        %li
+          %a.edit{:href => @page.edit_url}> edit
       %li
-        %a{ :href => "/" } Home
-      %li
-        %a{ :href => "/pages/" } All pages
+        %a.list{:href => '/pages/'}> list
     #content= yield

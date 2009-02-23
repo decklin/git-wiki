@@ -7,9 +7,11 @@ require 'rdiscount'
 
 module GitWiki
   class << self
-    attr_accessor :root_page, :extension, :repository, :link_pattern
+    attr_accessor :root_page, :extension, :link_pattern
+    attr_reader :wiki_name, :repository
   end
-  @repository = Grit::Repo.new(ARGV[0] || File.expand_path('~/wiki'))
+  @wiki_name = File.basename(File.expand_path(ARGV[0] || '~/wiki'))
+  @repository = Grit::Repo.new(File.expand_path(ARGV[0] || '~/wiki'))
   @extension = ARGV[1] || '.markdown'
   @root_page = ARGV[2] || 'index'
   @link_pattern = /\[\[(.*?)\]\]/
@@ -39,12 +41,8 @@ class Page
     @blob = blob
   end
 
-  def to_html
-    Page.wikify(RDiscount.new(content).to_html)
-  end
-
   def to_s
-    name
+    @blob.name.sub(/#{GitWiki.extension}$/, '')
   end
 
   def url
@@ -59,12 +57,12 @@ class Page
     @blob.id ? 'existing' : 'new'
   end
 
-  def name
-    @blob.name.gsub(/#{File.extname(@blob.name)}$/, '')
-  end
-
   def content
     @blob.data
+  end
+
+  def to_html
+    Page.wikify(RDiscount.new(content).to_html)
   end
 
   def save!(data)

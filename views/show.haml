@@ -1,6 +1,1 @@
-- title @page.name
-#edit
-  %a{:href => @page.edit_url} Edit this page
-%h1= title
-#content
-  ~"#{@page.to_html}"
+~ @page.to_html

@@ -1,0 +1,41 @@
+body {
+  margin: 0;
+  padding: 0;
+  color: #000000;
+  background: #ffffff;
+  font: serif;
+}
+#title {
+  margin: 0;
+  padding: 0.2em 0.4em;
+  background: #ecedf8;
+  border: 1px solid #d6d7e1;
+  font: normal 200% sans-serif;
+}
+#content {
+  margin: 1em;
+}
+#actions {
+  float: right;
+  margin: -1.75em 0.4em 0 0;
+  font: normal 140% sans-serif;
+}
+#actions li {
+  display: inline;
+  padding: 0.2em;
+}
+dt {
+  font-weight: bold;
+}
+a:link {
+  color: #0a0ac2;
+}
+a:visited {
+  color: #572b80;
+}
+a.new:link {
+  color: #0ac20a;
+}
+a.new:visited {
+  color: #57802b;
+}
