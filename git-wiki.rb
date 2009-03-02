@@ -28,9 +28,9 @@ class Page
 
   def self.find_or_create(name, rev=nil)
     path = name + GitWiki.extension
-    tree = rev ? GitWiki.repository.commit(rev).tree : GitWiki.repository.tree
-    blob = tree/path || Grit::Blob.create(GitWiki.repository, :name => path)
-    new(blob)
+    commit = GitWiki.repository.commit(rev || GitWiki.repository.head.commit)
+    blob = commit.tree/path
+    new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
   end
 
   def self.wikify(content)
@@ -75,7 +75,8 @@ class Page
   end
 
   def log
-    GitWiki.repository.log('master', @blob.name).map {|commit| commit.to_hash }
+    head = GitWiki.repository.head.name
+    GitWiki.repository.log(head, @blob.name).map {|commit| commit.to_hash }
   end
 
   def save!(data, msg)
