@@ -46,20 +46,20 @@ class Page
     @blob = blob
   end
 
-  def to_s
+  def name
     @blob.name.sub(/#{GitWiki.extension}$/, '')
   end
 
   def url
-    to_s == GitWiki.root_page ? '/' : "/pages/#{to_s}"
+    name == GitWiki.root_page ? '/' : "/pages/#{name}"
   end
 
   def edit_url
-    "/pages/#{to_s}/edit"
+    "/pages/#{name}/edit"
   end
 
   def log_url
-    "/pages/#{to_s}/revisions/"
+    "/pages/#{name}/revisions/"
   end
 
   def css_class
@@ -80,7 +80,7 @@ class Page
   end
 
   def save!(data, msg)
-    msg = "web commit: #{self}" if msg.empty?
+    msg = "web commit: #{name}" if msg.empty?
     Dir.chdir(GitWiki.repository.working_dir) do
       File.open(@blob.name, 'w') {|f| f.puts(data.gsub("\r\n", "\n")) }
       GitWiki.repository.add(@blob.name)
