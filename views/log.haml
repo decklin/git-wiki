@@ -1,5 +1,7 @@
-%dl
+%table.revisions
   - @page.log.each do |commit|
-    %dt= commit['committed_date']
-    %dd
-      %a{:href => GitWiki.url(@page, :rev => commit['id'])}= commit['message']
+    %tr
+      %td.date= Time.parse(commit['authored_date']).strftime('%F %X')
+      %td.author= commit['author']['name']
+      %td.message
+        %a{:href => GitWiki.url(@page, :rev => commit['id'])}= commit['message']

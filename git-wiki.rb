@@ -4,6 +4,7 @@ require 'sinatra'
 require 'haml'
 require 'grit'
 require 'rdiscount'
+require 'time'
 
 module GitWiki
   class << self

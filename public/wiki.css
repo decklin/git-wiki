@@ -24,8 +24,8 @@ body {
   display: inline;
   padding: 0.2em;
 }
-dt {
-  font-weight: bold;
+td.date, td.author {
+  padding-right: 1em;
 }
 a:link {
   color: #0a0ac2;
