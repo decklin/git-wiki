@@ -15,7 +15,7 @@ module GitWiki
       @repository = Grit::Repo.new(path)
     end
     def all_page_blobs
-      @repository.tree.contents.select do |obj|
+      @repository.head.commit.tree.contents.select do |obj|
         obj.kind_of?(Grit::Blob) && obj.name.end_with?(@extension)
       end
     end
