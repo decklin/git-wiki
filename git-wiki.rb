@@ -18,6 +18,9 @@ module GitWiki
         obj.kind_of?(Grit::Blob) && obj.name.end_with?(@extension)
       end
     end
+    def list_url
+      "/pages/"
+    end
   end
 end
 
