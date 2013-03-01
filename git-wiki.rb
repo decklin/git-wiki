@@ -28,7 +28,7 @@ class Page
 
   def self.find_or_create(name, rev=nil)
     path = name + GitWiki.extension
-    commit = GitWiki.repository.commit(rev || GitWiki.repository.head.commit)
+    commit = rev ? GitWiki.repository.commit(rev) : GitWiki.repository.head.commit
     blob = commit.tree/path
     new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
   end
