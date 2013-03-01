@@ -1,4 +1,4 @@
 %ul#list
   - @pages.each do |p|
     %li
-      %a.page.existing{:href => GitWiki.url(p)}= p.name
+      %a.page{:href => GitWiki.url(p)}= p.name

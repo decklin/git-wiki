@@ -25,6 +25,13 @@ module GitWiki
     def url(page=nil, params=nil)
       '/' + (page && page.name != @root_page ? page.name : '') + (params ? "?#{Rack::Utils.build_query(params)}" : '')
     end
+    def expand_links(html)
+      html.gsub(@link_pattern) do
+        link_text = $1
+        page = Page.find_or_create(link_text.gsub(/[^\w\s]/, '').split.join('-').downcase)
+        "<a class='page #{'new' unless page.exists?}' href='#{url(page)}'>#{link_text}</a>"
+      end
+    end
   end
 end
 
@@ -38,16 +45,6 @@ class Page
     commit = rev ? GitWiki.repository.commit(rev) : GitWiki.repository.head.commit
     blob = commit.tree/path
     new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
-  end
-
-  def self.wikify(content)
-    content.gsub(GitWiki.link_pattern) {|match| link($1) }
-  end
-
-  def self.link(text)
-    page = find_or_create(text.gsub(/[^\w\s]/, '').split.join('-').downcase)
-    page_class = page.exists? ? 'existing' : 'new'
-    "<a class='page #{page_class}' href='#{GitWiki.url(page)}'>#{text}</a>"
   end
 
   def initialize(blob)
@@ -67,7 +64,7 @@ class Page
   end
 
   def to_html
-    Page.wikify(RDiscount.new(content).to_html)
+    GitWiki.expand_links(RDiscount.new(content).to_html)
   end
 
   def log
