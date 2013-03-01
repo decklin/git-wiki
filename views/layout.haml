@@ -6,15 +6,15 @@
   %body
     %h1#title<
       %a.home{:href => '/'}>= GitWiki::wiki_name
-      - if @page and @page.url != '/'
+      - if @page and GitWiki.url(@page) != '/'
         \:
-        %a{:href => @page.url}= @page.name
+        %a{:href => GitWiki.url(@page)}= @page.name
     %ul#actions
       - if @page
         %li
-          %a.edit{:href => @page.edit_url}> edit
+          %a.edit{:href => GitWiki.url(@page, :view => :edit)}> edit
         %li
-          %a.log{:href => @page.log_url}> log
+          %a.log{:href => GitWiki.url(@page, :view => :log)}> log
       %li
-        %a.list{:href => GitWiki.list_url}> all
+        %a.list{:href => GitWiki.url(nil, :view => :tree)}> all
     #content= yield

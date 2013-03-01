@@ -21,8 +21,8 @@ module GitWiki
     def file_path(name)
       (name.empty? ? @root_page : name) + @extension
     end
-    def list_url
-      "/?view=tree"
+    def url(page=nil, params=nil)
+      '/' + (page && page.name != @root_page ? page.name : '') + (params ? "?#{Rack::Utils.build_query(params)}" : '')
     end
   end
 end
@@ -46,7 +46,7 @@ class Page
   def self.link(text)
     page = find_or_create(text.gsub(/[^\w\s]/, '').split.join('-').downcase)
     page_class = page.exists? ? 'existing' : 'new'
-    "<a class='page #{page_class}' href='#{page.url}'>#{text}</a>"
+    "<a class='page #{page_class}' href='#{GitWiki.url(page)}'>#{text}</a>"
   end
 
   def initialize(blob)
@@ -55,22 +55,6 @@ class Page
 
   def name
     @blob.name.sub(/#{GitWiki.extension}$/, '')
-  end
-
-  def url
-    name == GitWiki.root_page ? '/' : "/#{name}"
-  end
-
-  def rev_url(rev)
-    "#{url}?rev=#{rev}"
-  end
-
-  def edit_url
-    "#{url}?view=edit"
-  end
-
-  def log_url
-    "#{url}?view=log"
   end
 
   def exists?
@@ -119,7 +103,7 @@ end
 post '/*' do
   @page = Page.find_or_create(*params[:splat])
   @page.save!(params[:content], params[:msg])
-  redirect @page.url, 303
+  redirect GitWiki.url(@page), 303
 end
 
 configure do
