@@ -9,15 +9,18 @@ require 'time'
 module GitWiki
   class << self
     attr_accessor :wiki_path, :root_page, :extension, :link_pattern
-    attr_reader :wiki_name, :repository
+    attr_reader :wiki_name, :repo
     def wiki_path=(path)
       @wiki_name = File.basename(path)
-      @repository = Grit::Repo.new(path)
+      @repo = Grit::Repo.new(path)
     end
     def all_page_blobs
-      @repository.head.commit.tree.contents.select do |obj|
+      @repo.head.commit.tree.contents.select do |obj|
         obj.kind_of?(Grit::Blob) && obj.name.end_with?(@extension)
       end
+    end
+    def create_blob(path)
+      Grit::Blob.create(@repo, :name => path)
     end
     def file_path(name)
       (name.empty? ? @root_page : name) + @extension
@@ -42,9 +45,9 @@ class Page
 
   def self.find_or_create(name, rev=nil)
     path = GitWiki.file_path(name)
-    commit = rev ? GitWiki.repository.commit(rev) : GitWiki.repository.head.commit
+    commit = rev ? GitWiki.repo.commit(rev) : GitWiki.repo.head.commit
     blob = commit.tree/path
-    new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
+    new(blob || GitWiki.create_blob(path))
   end
 
   def initialize(blob)
@@ -68,16 +71,16 @@ class Page
   end
 
   def log
-    head = GitWiki.repository.head.name
-    GitWiki.repository.log(head, @blob.name).map {|commit| commit.to_hash }
+    head = GitWiki.repo.head.name
+    GitWiki.repo.log(head, @blob.name).map {|commit| commit.to_hash }
   end
 
   def save!(data, msg)
     msg = "web commit: #{name}" if msg.empty?
-    Dir.chdir(GitWiki.repository.working_dir) do
+    Dir.chdir(GitWiki.repo.working_dir) do
       File.open(@blob.name, 'w') {|f| f.puts(data.gsub("\r\n", "\n")) }
-      GitWiki.repository.add(@blob.name)
-      GitWiki.repository.commit_index(msg)
+      GitWiki.repo.add(@blob.name)
+      GitWiki.repo.commit_index(msg)
     end
   end
 end
