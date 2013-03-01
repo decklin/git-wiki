@@ -18,8 +18,11 @@ module GitWiki
         obj.kind_of?(Grit::Blob) && obj.name.end_with?(@extension)
       end
     end
+    def file_path(name)
+      (name.empty? ? @root_page : name) + @extension
+    end
     def list_url
-      "/pages/"
+      "/?view=tree"
     end
   end
 end
@@ -30,7 +33,7 @@ class Page
   end
 
   def self.find_or_create(name, rev=nil)
-    path = name + GitWiki.extension
+    path = GitWiki.file_path(name)
     commit = rev ? GitWiki.repository.commit(rev) : GitWiki.repository.head.commit
     blob = commit.tree/path
     new(blob || Grit::Blob.create(GitWiki.repository, :name => path))
@@ -54,15 +57,19 @@ class Page
   end
 
   def url
-    name == GitWiki.root_page ? '/' : "/pages/#{name}"
+    name == GitWiki.root_page ? '/' : "/#{name}"
+  end
+
+  def rev_url(rev)
+    "#{url}?rev=#{rev}"
   end
 
   def edit_url
-    "/pages/#{name}/edit"
+    "#{url}?view=edit"
   end
 
   def log_url
-    "/pages/#{name}/revisions/"
+    "#{url}?view=log"
   end
 
   def css_class
@@ -94,38 +101,22 @@ end
 
 set :haml, :format => :html5, :attr_wrapper => '"'
 
-get '/' do
-  @page = Page.find_or_create(GitWiki.root_page)
-  haml :show
+get '/*' do
+  if params[:view] == 'tree'
+    @pages = Page.find_all
+    haml :list
+  else
+    @page = Page.find_or_create(*params[:splat], params[:rev])
+    case params[:view]
+    when 'log'; haml :log
+    when 'edit'; haml :edit
+    else haml :show
+    end
+  end
 end
 
-get '/pages/' do
-  @pages = Page.find_all
-  haml :list
-end
-
-get '/pages/:page/?' do
-  @page = Page.find_or_create(params[:page])
-  haml :show
-end
-
-get '/pages/:page/revisions/' do
-  @page = Page.find_or_create(params[:page])
-  haml :log
-end
-
-get '/pages/:page/revisions/:rev' do
-  @page = Page.find_or_create(params[:page], params[:rev])
-  haml :show
-end
-
-get '/pages/:page/edit' do
-  @page = Page.find_or_create(params[:page])
-  haml :edit
-end
-
-post '/pages/:page/edit' do
-  @page = Page.find_or_create(params[:page])
+post '/*' do
+  @page = Page.find_or_create(*params[:splat])
   @page.save!(params[:content], params[:msg])
   redirect @page.url, 303
 end

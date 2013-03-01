@@ -14,10 +14,6 @@ differences are:
     commits to the current branch. (You may prefer to keep all your real
     pages in a branch, and have master just be a tracking branch.)
 
-  * Page URLs are under /pages/. Instead redirecting to a "home page",
-    / magically shows the contents of the page "index" (this name is
-    configurable).
-
   * Wiki links use [[Brackets, Like... This]], and generate a link to
     (e.g.) "brackets-like-this". You *can* create a page with
     characters other than [a-z0-9-], but you won't be able to link to
@@ -39,7 +35,7 @@ A few minor features have been added:
     the default message only denotes that the commit was made from the
     web interface.
 
-  * Page histories are viewable under /page/foo/revisions/.
+  * Page histories are viewable with the query param `view=log`.
 
 Git-wiki was designed and written by Simon Rozet. He did the hard work, I
 just fiddled with the chrome a bit. The original README contains a wealth

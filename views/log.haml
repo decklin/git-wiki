@@ -2,4 +2,4 @@
   - @page.log.each do |commit|
     %dt= commit['committed_date']
     %dd
-      %a{:href => commit['id']}= commit['message']
+      %a{:href => @page.rev_url(commit['id'])}= commit['message']
