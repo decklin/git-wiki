@@ -45,7 +45,8 @@ class Page
 
   def self.link(text)
     page = find_or_create(text.gsub(/[^\w\s]/, '').split.join('-').downcase)
-    "<a class='page #{page.css_class}' href='#{page.url}'>#{text}</a>"
+    page_class = page.exists? ? 'existing' : 'new'
+    "<a class='page #{page_class}' href='#{page.url}'>#{text}</a>"
   end
 
   def initialize(blob)
@@ -72,8 +73,8 @@ class Page
     "#{url}?view=log"
   end
 
-  def css_class
-    @blob.id ? 'existing' : 'new'
+  def exists?
+    !!@blob.id
   end
 
   def content
@@ -110,7 +111,7 @@ get '/*' do
     case params[:view]
     when 'log'; haml :log
     when 'edit'; haml :edit
-    else haml :show
+    else haml @page.exists? ? :show : :edit
     end
   end
 end
