@@ -50,11 +50,11 @@ of additional information.
 Installation and Use
 --------------------
 
-This git-wiki requires Sinatra, Grit, Haml, and RDiscount, all available
-on RubyGems. Here's how to create a new wiki and run it:
+This git-wiki requires Ruby 1.9. Here's how to create a new wiki and run it:
 
     git clone git-wiki my-wiki
     cd my-wiki
+    bundle install
     ./git-wiki.rb # and point browser to http://localhost:4567/
 
 Configuration
